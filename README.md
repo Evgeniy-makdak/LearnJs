@@ -237,6 +237,16 @@ MIT License — см. файл [LICENSE](LICENSE)
 
 <div align="center">
 
+## 🌐 Демо
+
+Приложение доступно на GitHub Pages:
+
+### **[https://evgeniy-makdak.github.io/LearnJs/](https://evgeniy-makdak.github.io/LearnJs/)**
+
+---
+
+
+
 **JavaScript Simulator** — учите JavaScript интерактивно! 🚀
 
 </div>
