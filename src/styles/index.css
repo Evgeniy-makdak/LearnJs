@@ -1,0 +1,111 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  * {
+    @apply border-dark-border;
+  }
+
+  body {
+    @apply bg-gray-50 text-gray-900 dark:bg-dark-bg dark:text-gray-100;
+    font-family: var(--font-sans);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  code {
+    font-family: var(--font-mono);
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary hover:bg-primary-dark text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200;
+  }
+
+  .btn-secondary {
+    @apply bg-dark-card hover:bg-dark-border text-gray-100 font-semibold py-2 px-4 rounded-lg transition-colors duration-200;
+  }
+
+  .card {
+    @apply bg-white dark:bg-dark-card rounded-xl shadow-lg border border-dark-border p-6;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-2 bg-gray-100 dark:bg-dark-card border border-dark-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-gray-100;
+  }
+
+  .code-block {
+    @apply bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto font-mono text-sm;
+  }
+
+  .nav-item {
+    @apply flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-200 cursor-pointer;
+  }
+
+  .nav-item-active {
+    @apply bg-primary/10 text-primary border-l-4 border-primary;
+  }
+
+  .nav-item-inactive {
+    @apply text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-dark-card;
+  }
+
+  .progress-bar {
+    @apply h-2 bg-gray-200 dark:bg-dark-border rounded-full overflow-hidden;
+  }
+
+  .progress-fill {
+    @apply h-full bg-gradient-to-r from-primary to-primary-light transition-all duration-500;
+  }
+
+  .locked-item {
+    @apply opacity-50 pointer-events-none grayscale;
+  }
+
+  .completed-item {
+    @apply border-green-500/50 bg-green-500/10;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary to-js bg-clip-text text-transparent;
+  }
+
+  .neon-glow {
+    @apply shadow-[0_0_10px_rgba(16,185,129,0.5)];
+  }
+
+  .js-glow {
+    @apply shadow-[0_0_15px_rgba(247,223,30,0.3)];
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100 dark:bg-dark-bg;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 dark:bg-dark-border rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-400 dark:bg-gray-600;
+}
+
+/* Monaco Editor dark theme override */
+.monaco-editor {
+  padding-top: 10px !important;
+}
