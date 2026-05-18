@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <rect fill="#0f172a" width="100" height="100" rx="15"/>
+  <rect fill="#f7df1e" x="10" y="10" width="80" height="80" rx="10"/>
+  <text x="50" y="65" font-family="Arial, sans-serif" font-size="40" font-weight="bold" fill="#0f172a" text-anchor="middle">JS</text>
+</svg>
