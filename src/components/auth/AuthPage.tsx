@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../../store/useStore';
 
-interface AuthPageProps {
-  onAuthSuccess?: () => void;
-}
-
-const AuthPage: React.FC<AuthPageProps> = ({ onAuthSuccess }) => {
+const AuthPage: React.FC = () => {
+  const navigate = useNavigate();
   const [mode, setMode] = useState<'login' | 'register' | 'verify'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -36,7 +34,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ onAuthSuccess }) => {
     e.preventDefault();
     const result = await verifyEmail(pendingEmail || email, verificationCode);
     if (result.success) {
-      onAuthSuccess?.();
+      navigate('/');
     }
   };
 
@@ -44,7 +42,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ onAuthSuccess }) => {
     e.preventDefault();
     const result = await login(email, password);
     if (result.success) {
-      onAuthSuccess?.();
+      navigate('/');
     }
   };
 
@@ -323,6 +321,12 @@ const AuthPage: React.FC<AuthPageProps> = ({ onAuthSuccess }) => {
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Без регистрации доступен только раздел "Фундамент"
           </p>
+          <button
+            onClick={() => navigate('/')}
+            className="mt-2 text-sm text-primary hover:underline"
+          >
+            Продолжить без регистрации
+          </button>
         </div>
       </motion.div>
     </div>
