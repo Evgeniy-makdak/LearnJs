@@ -1,15 +1,17 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { courseModules } from '../../data/courseData';
 import { useStore } from '../../store/useStore';
 
 const ProgressDashboard: React.FC = () => {
+  const navigate = useNavigate();
   const totalProgress = useStore((state) => state.getTotalProgress());
   const completedTopicsCount = useStore((state) => state.getCompletedTopicsCount());
   const isTopicCompleted = useStore((state) => state.isTopicCompleted);
   const isTopicLocked = useStore((state) => state.isTopicLocked);
   const getTopicScore = useStore((state) => state.getTopicScore);
+  const isAuthenticated = useStore((state) => state.isAuthenticated);
 
   const totalTopics = courseModules.flatMap((m) => m.topics).length;
   const completedCount = completedTopicsCount;
@@ -17,7 +19,12 @@ const ProgressDashboard: React.FC = () => {
   const allTopics = courseModules.flatMap((m) => m.topics);
   const nextTopic = allTopics.find((t) => !isTopicCompleted(t.id) && !isTopicLocked(t.id));
 
-  const moduleStats = courseModules.map((module) => {
+  // Filter modules for non-authenticated users
+  const visibleModules = isAuthenticated 
+    ? courseModules 
+    : courseModules.filter(m => m.id === 'module-1');
+
+  const moduleStats = visibleModules.map((module) => {
     const moduleTopics = module.topics;
     const completedInModule = moduleTopics.filter((t) => isTopicCompleted(t.id)).length;
     const avgScore = moduleTopics.reduce((acc, t) => acc + getTopicScore(t.id), 0) / moduleTopics.length;
@@ -29,6 +36,10 @@ const ProgressDashboard: React.FC = () => {
       avgScore: Math.round(avgScore)
     };
   });
+
+  // Check if first module is completed
+  const module1 = courseModules.find(m => m.id === 'module-1');
+  const module1Completed = module1 ? module1.topics.every(t => isTopicCompleted(t.id)) : false;
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -44,6 +55,63 @@ const ProgressDashboard: React.FC = () => {
           Отслеживайте свой прогресс в изучении JavaScript
         </p>
       </motion.div>
+
+      {/* Auth warning for non-authenticated */}
+      {!isAuthenticated && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg"
+        >
+          <div className="flex items-center gap-3">
+            <svg className="w-6 h-6 text-yellow-600 dark:text-yellow-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            </svg>
+            <div>
+              <p className="text-sm font-medium text-yellow-800 dark:text-yellow-300">
+                Демо-режим
+              </p>
+              <p className="text-sm text-yellow-700 dark:text-yellow-400">
+                Без регистрации доступен только раздел "Фундамент".{' '}
+                <button 
+                  onClick={() => navigate('/auth')}
+                  className="underline font-medium hover:text-yellow-900 dark:hover:text-yellow-200"
+                >
+                  Войдите
+                </button>{' '}
+                для доступа ко всему курсу.
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* First module complete message */}
+      {!isAuthenticated && module1Completed && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="mb-6 p-6 bg-gradient-to-r from-green-500/10 to-blue-500/10 border border-green-500/30 rounded-lg text-center"
+        >
+          <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+            <svg className="w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+            Вы прошли первый раздел курса!
+          </h3>
+          <p className="text-gray-600 dark:text-gray-300 mb-4">
+            Для продолжения обучения необходимо авторизоваться в личном кабинете
+          </p>
+          <button
+            onClick={() => navigate('/auth')}
+            className="px-6 py-2.5 bg-primary text-white rounded-lg font-medium hover:bg-primary-dark transition-colors"
+          >
+            Войти / Зарегистрироваться
+          </button>
+        </motion.div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <motion.div
@@ -239,6 +307,51 @@ const ProgressDashboard: React.FC = () => {
                   </Link>
                 );
               })}
+            </div>
+          </motion.div>
+        ))}
+
+        {/* Locked modules for non-authenticated */}
+        {!isAuthenticated && courseModules.filter(m => m.id !== 'module-1').map((module, index) => (
+          <motion.div
+            key={module.id}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 * (visibleModules.length + index) }}
+            className="card opacity-60"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <span className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center text-sm font-semibold text-gray-500">
+                  {visibleModules.length + index + 1}
+                </span>
+                <div>
+                  <h3 className="font-bold text-lg text-gray-500 dark:text-gray-500">
+                    {module.title}
+                  </h3>
+                  <p className="text-sm text-gray-400 dark:text-gray-600">
+                    {module.description}
+                  </p>
+                </div>
+              </div>
+              <svg className="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {module.topics.map((topic) => (
+                <div
+                  key={topic.id}
+                  className="p-3 rounded-lg border border-dark-border bg-gray-100/30 dark:bg-gray-800/30 cursor-not-allowed"
+                >
+                  <div className="flex items-center gap-2">
+                    <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                    </svg>
+                    <span className="text-sm text-gray-500 dark:text-gray-500 truncate">{topic.title}</span>
+                  </div>
+                </div>
+              ))}
             </div>
           </motion.div>
         ))}

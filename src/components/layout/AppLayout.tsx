@@ -1,16 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from './Sidebar';
+import FirstModuleModal from '../auth/FirstModuleModal';
 import { useStore } from '../../store/useStore';
 import { useTheme } from '../../hooks/useTheme';
+import { courseModules } from '../../data/courseData';
 
 const AppLayout: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const initialize = useStore((state) => state.initialize);
   const isLoading = useStore((state) => state.isLoading);
   const { darkMode, toggleTheme } = useTheme();
+  
+  const authUser = useStore((state) => state.authUser);
+  const isAuthenticated = useStore((state) => state.isAuthenticated);
+  const logout = useStore((state) => state.logout);
+  const showFirstModuleComplete = useStore((state) => state.showFirstModuleComplete);
+  const setShowFirstModuleComplete = useStore((state) => state.setShowFirstModuleComplete);
+  const userState = useStore((state) => state.userState);
 
   useEffect(() => {
     initialize();
@@ -19,6 +29,21 @@ const AppLayout: React.FC = () => {
   useEffect(() => {
     setSidebarOpen(false);
   }, [location.pathname]);
+
+  // Check if first module is completed
+  useEffect(() => {
+    if (!isAuthenticated) {
+      const module1 = courseModules.find(m => m.id === 'module-1');
+      if (module1) {
+        const allCompleted = module1.topics.every(
+          t => userState.topicProgress[t.id]?.completed
+        );
+        if (allCompleted && !showFirstModuleComplete) {
+          setShowFirstModuleComplete(true);
+        }
+      }
+    }
+  }, [userState.topicProgress, isAuthenticated, showFirstModuleComplete, setShowFirstModuleComplete]);
 
   if (isLoading) {
     return (
@@ -60,6 +85,32 @@ const AppLayout: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-2 lg:gap-4">
+              {/* User info / Auth button */}
+              {isAuthenticated && authUser ? (
+                <div className="flex items-center gap-2">
+                  <span className="hidden sm:block text-sm text-gray-600 dark:text-gray-300">
+                    {authUser.name}
+                  </span>
+                  <button
+                    onClick={() => logout()}
+                    className="p-2 rounded-lg bg-gray-100 dark:bg-dark-border hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                    title="Выйти"
+                  >
+                    <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => navigate('/auth')}
+                  className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary-dark transition-colors"
+                >
+                  Войти
+                </button>
+              )}
+
+              {/* Theme toggle */}
               <button
                 onClick={toggleTheme}
                 className="p-2 rounded-lg bg-gray-100 dark:bg-dark-border hover:bg-gray-200 dark:hover:bg-dark-bg transition-colors"
@@ -80,6 +131,7 @@ const AppLayout: React.FC = () => {
                 )}
               </button>
 
+              {/* Progress (desktop) */}
               <div className="hidden md:flex items-center gap-2">
                 <span className="text-sm text-gray-600 dark:text-gray-400">
                   Общий прогресс:
@@ -109,6 +161,19 @@ const AppLayout: React.FC = () => {
           </AnimatePresence>
         </div>
       </main>
+
+      {/* First Module Complete Modal */}
+      <AnimatePresence>
+        {showFirstModuleComplete && (
+          <FirstModuleModal
+            onAuthClick={() => {
+              setShowFirstModuleComplete(false);
+              navigate('/auth');
+            }}
+            onClose={() => setShowFirstModuleComplete(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };

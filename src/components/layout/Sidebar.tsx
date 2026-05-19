@@ -19,6 +19,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const getTopicScore = useStore((state) => state.getTopicScore);
   const getTotalProgress = useStore((state) => state.getTotalProgress);
   const getCompletedTopicsCount = useStore((state) => state.getCompletedTopicsCount);
+  const isAuthenticated = useStore((state) => state.isAuthenticated);
 
   const toggleModule = (moduleId: string) => {
     setExpandedModules((prev) =>
@@ -48,6 +49,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       onClose();
     }
   };
+
+  // Filter modules for non-authenticated users
+  const visibleModules = isAuthenticated 
+    ? courseModules 
+    : courseModules.filter(m => m.id === 'module-1');
 
   return (
     <>
@@ -99,11 +105,20 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               <div className="progress-fill" style={{ width: `${getTotalProgress()}%` }} />
             </div>
           </div>
+
+          {/* Auth status */}
+          {!isAuthenticated && (
+            <div className="mt-3 p-2 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+              <p className="text-xs text-yellow-600 dark:text-yellow-400">
+                Демо-режим: доступен только 1-й модуль
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Список модулей */}
         <nav className="flex-1 overflow-y-auto p-4">
-          {courseModules.map((module, moduleIndex) => (
+          {visibleModules.map((module, moduleIndex) => (
             <div key={module.id} className="mb-2">
               {/* Заголовок модуля */}
               <button
@@ -192,6 +207,22 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               </AnimatePresence>
             </div>
           ))}
+
+          {/* Show login prompt for non-authenticated */}
+          {!isAuthenticated && (
+            <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+              <p className="text-xs text-blue-600 dark:text-blue-400 mb-2">
+                Войдите, чтобы получить доступ ко всем модулям
+              </p>
+              <Link
+                to="/auth"
+                onClick={handleLinkClick}
+                className="block w-full text-center py-2 px-4 bg-primary text-white text-sm rounded-lg hover:bg-primary-dark transition-colors"
+              >
+                Войти / Зарегистрироваться
+              </Link>
+            </div>
+          )}
         </nav>
 
         {/* Футер сайдбара */}

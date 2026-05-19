@@ -15,7 +15,7 @@ export interface QuizTask {
   type: 'quiz';
   question: string;
   options: string[];
-  correct: number[]; // индексы правильных ответов (поддержка множественного выбора)
+  correct: number[];
   explanation: string;
 }
 
@@ -24,12 +24,12 @@ export interface CodingTask {
   type: 'coding';
   description: string;
   initialCode: string;
-  functionName?: string; // имя функции, которую ожидает тест (по умолчанию 'solution')
+  functionName?: string;
   testCases: Array<{
     input: any[];
     expected: any;
   }>;
-  precondition?: string; // код, выполняемый перед тестом
+  precondition?: string;
 }
 
 /** Объединенный тип задания */
@@ -58,21 +58,54 @@ export interface TaskProgress {
   completed: boolean;
   attempts: number;
   lastAttempt?: Date;
-  userCode?: string; // для coding tasks
+  userCode?: string;
 }
 
 /** Прогресс пользователя по теме */
 export interface TopicProgress {
   topicId: string;
   completed: boolean;
-  score: number; // процент правильных ответов
+  score: number;
   taskProgress: TaskProgress[];
   completedAt?: Date;
+}
+
+/** Авторизованный пользователь */
+export interface AuthUser {
+  id: string;
+  email: string;
+  name: string;
+  verified: boolean;
+  createdAt: number;
+}
+
+/** Данные для регистрации */
+export interface RegisterData {
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
+/** Данные для входа */
+export interface LoginData {
+  email: string;
+  password: string;
+}
+
+/** Состояние аутентификации */
+export interface AuthState {
+  user: AuthUser | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  error: string | null;
+  verificationCode: string | null;
+  pendingEmail: string | null;
 }
 
 /** Состояние пользователя в хранилище */
 export interface UserState {
   id: string;
+  email?: string;
   name: string;
   currentTopicId: string | null;
   topicProgress: Record<string, TopicProgress>;
