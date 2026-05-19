@@ -8,12 +8,15 @@ const ProgressDashboard: React.FC = () => {
   const totalProgress = useStore((state) => state.getTotalProgress());
   const completedTopicsCount = useStore((state) => state.getCompletedTopicsCount());
   const isTopicCompleted = useStore((state) => state.isTopicCompleted);
+  const isTopicLocked = useStore((state) => state.isTopicLocked);
   const getTopicScore = useStore((state) => state.getTopicScore);
 
   const totalTopics = courseModules.flatMap((m) => m.topics).length;
   const completedCount = completedTopicsCount;
 
-  // Статистика по модулям
+  const allTopics = courseModules.flatMap((m) => m.topics);
+  const nextTopic = allTopics.find((t) => !isTopicCompleted(t.id) && !isTopicLocked(t.id));
+
   const moduleStats = courseModules.map((module) => {
     const moduleTopics = module.topics;
     const completedInModule = moduleTopics.filter((t) => isTopicCompleted(t.id)).length;
@@ -29,7 +32,6 @@ const ProgressDashboard: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto">
-      {/* Заголовок */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -43,9 +45,7 @@ const ProgressDashboard: React.FC = () => {
         </p>
       </motion.div>
 
-      {/* Карточки статистики */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {/* Общий прогресс */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -68,7 +68,6 @@ const ProgressDashboard: React.FC = () => {
           </div>
         </motion.div>
 
-        {/* Пройдено тем */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -92,7 +91,6 @@ const ProgressDashboard: React.FC = () => {
           </div>
         </motion.div>
 
-        {/* Следующий урок */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -111,18 +109,23 @@ const ProgressDashboard: React.FC = () => {
             </div>
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">Следующий урок</p>
-              <Link
-                to={`/lesson/${courseModules[0]?.topics[completedCount]?.id || courseModules[0]?.topics[0]?.id}`}
-                className="text-lg font-semibold text-blue-500 hover:text-blue-400"
-              >
-                {courseModules[0]?.topics[completedCount]?.title || 'Начать курс'}
-              </Link>
+              {nextTopic ? (
+                <Link
+                  to={`/lesson/${nextTopic.id}`}
+                  className="text-lg font-semibold text-blue-500 hover:text-blue-400"
+                >
+                  {nextTopic.title}
+                </Link>
+              ) : (
+                <p className="text-lg font-semibold text-gray-500">
+                  {completedCount === totalTopics ? 'Курс пройден!' : 'Начать курс'}
+                </p>
+              )}
             </div>
           </div>
         </motion.div>
       </div>
 
-      {/* Модули курса */}
       <div className="space-y-6">
         {moduleStats.map((stat, index) => (
           <motion.div
@@ -156,11 +159,39 @@ const ProgressDashboard: React.FC = () => {
               </div>
             </div>
 
-            {/* Темы модуля */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {stat.module.topics.map((topic) => {
                 const isCompleted = isTopicCompleted(topic.id);
+                const isLocked = isTopicLocked(topic.id);
                 const score = getTopicScore(topic.id);
+
+                if (isLocked) {
+                  return (
+                    <div
+                      key={topic.id}
+                      className="p-3 rounded-lg border border-dark-border bg-gray-100/50 dark:bg-gray-800/50 opacity-60 cursor-not-allowed select-none"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm text-gray-500 dark:text-gray-500 truncate">
+                            {topic.title}
+                          </p>
+                          <div className="mt-2 flex items-center gap-2">
+                            <div className="flex-1 progress-bar h-1.5 bg-gray-300 dark:bg-gray-700">
+                              <div className="progress-fill h-full bg-gray-400 dark:bg-gray-600" style={{ width: '0%' }} />
+                            </div>
+                            <span className="text-xs text-gray-400 dark:text-gray-600">
+                              0%
+                            </span>
+                          </div>
+                        </div>
+                        <svg className="w-5 h-5 text-gray-400 dark:text-gray-600 flex-shrink-0 ml-2" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                    </div>
+                  );
+                }
 
                 return (
                   <Link

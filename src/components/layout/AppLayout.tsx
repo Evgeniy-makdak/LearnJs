@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from './Sidebar';
@@ -7,14 +7,18 @@ import { useTheme } from '../../hooks/useTheme';
 
 const AppLayout: React.FC = () => {
   const location = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const initialize = useStore((state) => state.initialize);
   const isLoading = useStore((state) => state.isLoading);
   const { darkMode, toggleTheme } = useTheme();
 
-  // Инициализация хранилища при запуске
   useEffect(() => {
     initialize();
   }, [initialize]);
+
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [location.pathname]);
 
   if (isLoading) {
     return (
@@ -29,25 +33,33 @@ const AppLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen flex bg-gray-50 dark:bg-dark-bg transition-colors duration-300">
-      {/* Боковая панель */}
-      <Sidebar />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      {/* Основной контент */}
-      <main className="flex-1 flex flex-col min-h-screen">
-        {/* Верхняя панель */}
-        <header className="sticky top-0 z-50 bg-white/80 dark:bg-dark-card/80 backdrop-blur-md border-b border-dark-border px-6 py-4">
+      <main className="flex-1 flex flex-col min-h-screen w-full lg:w-auto">
+        <header className="sticky top-0 z-30 bg-white/80 dark:bg-dark-card/80 backdrop-blur-md border-b border-dark-border px-4 lg:px-6 py-4">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-bold text-gradient">
-                JavaScript Simulator
-              </h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Путь от новичка до профи
-              </p>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="lg:hidden p-2 rounded-lg bg-gray-100 dark:bg-dark-border hover:bg-gray-200 dark:hover:bg-dark-bg transition-colors"
+                aria-label="Открыть меню"
+              >
+                <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+
+              <div>
+                <h1 className="text-lg lg:text-xl font-bold text-gradient">
+                  JavaScript Simulator
+                </h1>
+                <p className="hidden sm:block text-sm text-gray-500 dark:text-gray-400">
+                  Путь от новичка до профи
+                </p>
+              </div>
             </div>
 
-            <div className="flex items-center gap-4">
-              {/* Переключатель темы */}
+            <div className="flex items-center gap-2 lg:gap-4">
               <button
                 onClick={toggleTheme}
                 className="p-2 rounded-lg bg-gray-100 dark:bg-dark-border hover:bg-gray-200 dark:hover:bg-dark-bg transition-colors"
@@ -68,8 +80,7 @@ const AppLayout: React.FC = () => {
                 )}
               </button>
 
-              {/* Прогресс */}
-              <div className="hidden sm:flex items-center gap-2">
+              <div className="hidden md:flex items-center gap-2">
                 <span className="text-sm text-gray-600 dark:text-gray-400">
                   Общий прогресс:
                 </span>
@@ -84,8 +95,7 @@ const AppLayout: React.FC = () => {
           </div>
         </header>
 
-        {/* Контент страницы с анимацией */}
-        <div className="flex-1 p-6">
+        <div className="flex-1 p-4 lg:p-6">
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
